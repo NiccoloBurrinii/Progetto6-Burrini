@@ -30,15 +30,15 @@ public class HttpServer {
 
             if (uri.equals("/")) {
                 content = this.readFile("src/main/resources/index.html");
-                this.sendResponse(out, content);
+                this.sendResponse(out, content, "GET");
             } else {
                 String dir = uri.replaceFirst("/", "");
                 content = this.readFile("src/main/resources/" + dir + "/index.html");
                 if (content.equals("404")) {
-                    this.sendResponse(out);
+                    this.sendResponseError(out);
 
                 } else {
-                    this.sendResponse(out, content);
+                    this.sendResponse(out, content, "GET");
                 }
             }
 
@@ -56,6 +56,7 @@ public class HttpServer {
             while (scanner.hasNextLine()) {
                 html += scanner.nextLine();
             }
+            scanner.close();
             return html;
         } catch (FileNotFoundException e) {
             System.out.println("File non trovato");
@@ -77,12 +78,38 @@ public class HttpServer {
         }
     }
 
-    public void sendResponse(DataOutputStream out) throws IOException {
+    public void sendResponseError(DataOutputStream out) throws IOException {
         try {
+            byte[] body = readFile("src/main/resources/404.html").getBytes();
+            int contentLength = body.length;
             out.write("HTTP/1.1 404 Not Found\r\n".getBytes());
             out.write("Content-Type: text/html\r\n".getBytes());
+            out.write(("Content-Length: " + contentLength + "\r\n").getBytes());
             out.write("\r\n".getBytes());
-            out.write("<h1>404 Not Found</h1>".getBytes());
+            out.write(body);
+
+        } catch (IOException e) {
+            System.err.println("Errore nell'invio della risposta");
+        }
+    }
+
+    /***/
+    public void sendResponse(DataOutputStream out, String content, String code) throws IOException {
+        try {
+            if (code.equals("GET")) {
+                byte[] body = content.getBytes();
+                int contentLength = body.length;
+                out.write("HTTP/1.1 200 OK\r\n".getBytes());
+                out.write("Content-Type: text/html\r\n".getBytes());
+                out.write(("Content-Length: " + contentLength + "\r\n").getBytes());
+                out.write("\r\n".getBytes());
+                out.write(body);
+            } else {
+                out.write("HTTP/1.1 404 Not Found\r\n".getBytes());
+                out.write("Content-Type: text/html\r\n".getBytes());
+                out.write("\r\n".getBytes());
+                out.write("<h1>404 Not Found</h1>".getBytes());
+            }
 
         } catch (IOException e) {
             System.err.println("Errore nell'invio della risposta");
