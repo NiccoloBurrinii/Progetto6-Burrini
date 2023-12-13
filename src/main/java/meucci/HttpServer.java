@@ -30,7 +30,7 @@ public class HttpServer {
 
             if (uri.equals("/")) {
                 content = this.readFile("src/main/resources/index.html");
-                this.sendResponse(out, content, "GET");
+                this.sendResponse(out, content);
             } else {
                 String dir = uri.replaceFirst("/", "");
                 content = this.readFile("src/main/resources/" + dir + "/index.html");
@@ -38,7 +38,7 @@ public class HttpServer {
                     this.sendResponseError(out);
 
                 } else {
-                    this.sendResponse(out, content, "GET");
+                    this.sendResponse(out, content);
                 }
             }
 
@@ -93,28 +93,6 @@ public class HttpServer {
         }
     }
 
-    /***/
-    public void sendResponse(DataOutputStream out, String content, String code) throws IOException {
-        try {
-            if (code.equals("GET")) {
-                byte[] body = content.getBytes();
-                int contentLength = body.length;
-                out.write("HTTP/1.1 200 OK\r\n".getBytes());
-                out.write("Content-Type: text/html\r\n".getBytes());
-                out.write(("Content-Length: " + contentLength + "\r\n").getBytes());
-                out.write("\r\n".getBytes());
-                out.write(body);
-            } else {
-                out.write("HTTP/1.1 404 Not Found\r\n".getBytes());
-                out.write("Content-Type: text/html\r\n".getBytes());
-                out.write("\r\n".getBytes());
-                out.write("<h1>404 Not Found</h1>".getBytes());
-            }
-
-        } catch (IOException e) {
-            System.err.println("Errore nell'invio della risposta");
-        }
-    }
 
     public void close() {
         try {
